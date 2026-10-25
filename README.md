@@ -13,6 +13,8 @@ The binding requires openHAB 5.0 or later.
 
 The binding needs your own OAuth client from Google. This is a one-time setup of about 15 minutes.
 
+🇩🇪 Eine ausführliche Schritt-für-Schritt-Anleitung auf Deutsch gibt es hier: [docs/ANLEITUNG-GOOGLE.md](docs/ANLEITUNG-GOOGLE.md).
+
 1. Open the [Google Cloud Console](https://console.cloud.google.com/) and create a new project (for example "openHAB").
 1. Go to **APIs & Services → Library**, search for **Google Drive API** and enable it.
 1. Go to **APIs & Services → OAuth consent screen** (Google Auth Platform):
