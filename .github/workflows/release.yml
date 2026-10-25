@@ -42,5 +42,10 @@ jobs:
           case "$VERSION" in 0.*) PRERELEASE="--prerelease" ;; esac
           NOTES="docs/releases/$VERSION.md"
           if [ -f "$NOTES" ]; then NOTES_ARG=(--notes-file "$NOTES"); else NOTES_ARG=(--generate-notes); fi
-          gh release create "$GITHUB_REF_NAME" "$JAR" \
-            --title "Google Drive Binding $VERSION" $PRERELEASE "${NOTES_ARG[@]}"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            # Tag was pushed again: only replace the JAR of the existing release.
+            gh release upload "$GITHUB_REF_NAME" "$JAR" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$JAR" \
+              --title "Google Drive Binding $VERSION" $PRERELEASE "${NOTES_ARG[@]}"
+          fi
