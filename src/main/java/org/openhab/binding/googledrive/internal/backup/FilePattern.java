@@ -20,7 +20,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  * The {@link FilePattern} matches file names against a simple glob pattern ({@code *} and {@code ?}), independent
  * of the operating system. It is used for local files and for file names in Google Drive.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class FilePattern {

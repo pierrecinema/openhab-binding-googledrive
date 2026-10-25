@@ -21,7 +21,7 @@ import org.eclipse.jdt.annotation.Nullable;
 /**
  * A file or folder in Google Drive (only the fields requested by the binding).
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class DriveFile {

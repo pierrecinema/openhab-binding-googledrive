@@ -17,7 +17,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 /**
  * The {@link TokenProvider} supplies a valid OAuth2 access token for requests to the Drive API.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public interface TokenProvider {

@@ -30,7 +30,7 @@ import org.openhab.binding.googledrive.internal.api.dto.DriveFile;
 /**
  * Tests for {@link FilePattern}, {@link RetentionPolicy} and {@link BackupFiles}.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 class BackupLogicTest {

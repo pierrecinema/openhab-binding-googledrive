@@ -20,7 +20,7 @@ import org.eclipse.jdt.annotation.Nullable;
 /**
  * One page of a Drive API files.list response.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class FileList {

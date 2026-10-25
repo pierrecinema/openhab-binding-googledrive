@@ -28,7 +28,7 @@ import com.google.gson.Gson;
 /**
  * Tests for {@link DeviceCodeLogin}.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 class DeviceCodeLoginTest {

@@ -18,7 +18,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  * The {@link GoogleDriveAccountConfiguration} class contains fields mapping the account bridge configuration
  * parameters.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class GoogleDriveAccountConfiguration {

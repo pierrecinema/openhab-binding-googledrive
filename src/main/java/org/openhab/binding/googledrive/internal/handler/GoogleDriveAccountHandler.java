@@ -61,7 +61,7 @@ import com.google.gson.Gson;
  * login, keeps the tokens in the openHAB OAuth store (which also refreshes them) and provides the Drive API to its
  * child things.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class GoogleDriveAccountHandler extends BaseBridgeHandler implements TokenProvider {

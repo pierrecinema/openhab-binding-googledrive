@@ -18,7 +18,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  * The {@link GoogleDriveConfigurationException} is thrown when Google rejects the configured OAuth client, for
  * example because the client ID or secret is wrong or the client has the wrong type.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class GoogleDriveConfigurationException extends GoogleDriveException {

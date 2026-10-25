@@ -19,7 +19,7 @@ import org.eclipse.jdt.annotation.Nullable;
  * The {@link GoogleDriveException} is thrown when a request to Google fails, for example because of a network
  * problem or an unexpected HTTP status.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class GoogleDriveException extends Exception {

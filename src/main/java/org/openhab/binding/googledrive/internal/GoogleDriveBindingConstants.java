@@ -21,7 +21,7 @@ import org.openhab.core.thing.ThingTypeUID;
  * The {@link GoogleDriveBindingConstants} class defines common constants, which are
  * used across the whole binding.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class GoogleDriveBindingConstants {

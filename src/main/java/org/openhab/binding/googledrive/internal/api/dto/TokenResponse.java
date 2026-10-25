@@ -20,7 +20,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Response of the Google token endpoint. Holds either the tokens or an OAuth2 error.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class TokenResponse {

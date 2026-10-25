@@ -34,7 +34,7 @@ import org.osgi.service.component.annotations.Reference;
  * The {@link GoogleDriveHandlerFactory} is responsible for creating things and thing
  * handlers.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 @Component(configurationPid = "binding.googledrive", service = ThingHandlerFactory.class)

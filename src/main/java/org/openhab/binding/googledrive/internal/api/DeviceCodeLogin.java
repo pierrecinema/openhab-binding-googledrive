@@ -41,7 +41,7 @@ import com.google.gson.JsonParseException;
  * so the login is done here. The resulting tokens are handed to the core OAuth client service, which stores and
  * refreshes them.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class DeviceCodeLogin {

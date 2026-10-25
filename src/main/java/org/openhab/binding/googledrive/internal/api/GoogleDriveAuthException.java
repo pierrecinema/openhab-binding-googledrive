@@ -19,7 +19,7 @@ import org.eclipse.jdt.annotation.Nullable;
  * The {@link GoogleDriveAuthException} is thrown when Google no longer accepts the stored login, so the user has to
  * log in again.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class GoogleDriveAuthException extends GoogleDriveException {

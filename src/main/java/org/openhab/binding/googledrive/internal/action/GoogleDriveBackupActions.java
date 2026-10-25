@@ -27,7 +27,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 /**
  * The {@link GoogleDriveBackupActions} provides rule actions for the backup thing.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @Component(scope = ServiceScope.PROTOTYPE, service = GoogleDriveBackupActions.class)
 @ThingActionsScope(name = "googledrive")

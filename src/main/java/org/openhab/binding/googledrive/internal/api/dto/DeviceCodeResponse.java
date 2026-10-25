@@ -20,7 +20,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Response of the Google device code endpoint.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class DeviceCodeResponse {

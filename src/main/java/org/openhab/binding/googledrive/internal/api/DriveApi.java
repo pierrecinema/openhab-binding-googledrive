@@ -48,7 +48,7 @@ import com.google.gson.JsonParseException;
 /**
  * The {@link DriveApi} is a small client for the Google Drive REST API v3.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class DriveApi {

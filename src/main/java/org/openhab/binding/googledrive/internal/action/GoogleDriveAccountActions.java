@@ -25,7 +25,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 /**
  * The {@link GoogleDriveAccountActions} provides rule actions for the Google Drive account bridge.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @Component(scope = ServiceScope.PROTOTYPE, service = GoogleDriveAccountActions.class)
 @ThingActionsScope(name = "googledrive")

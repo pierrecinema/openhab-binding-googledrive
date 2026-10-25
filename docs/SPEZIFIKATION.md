@@ -4,7 +4,7 @@
 |---|---|
 | Status | Entwurf v0.1 – zur Prüfung |
 | Datum | 2026-10-25 |
-| Ziel-Version | openHAB 5.2.x (Testsystem: offizielles Docker-Image, openHAB 5.2.1, `192.168.1.201:7070`) |
+| Ziel-Version | openHAB 5.2.x (Testsystem: offizielles Docker-Image, openHAB 5.2.1) |
 | Add-on-ID | `googledrive` |
 | Paket | `org.openhab.binding.googledrive` |
 | Lizenz | EPL-2.0 (Pflicht für openhab-addons) |
@@ -259,7 +259,7 @@ end
 - `RetentionPolicyTest` – 0 = unbegrenzt, Sortierung, nur passende Dateien
 - `DriveApiTest` – Parsen von Beispielantworten (JSON-Fixtures), Fehlercodes
 - `ResumableUploadTest` – Stückgrößen, Wiederaufnahme nach `308 Resume Incomplete`
-- Manuell: offizielles Docker-Image openHAB 5.2.1 (`192.168.1.201:7070`), echtes Google-Konto, Backup ~50–300 MB
+- Manuell: offizielles Docker-Image openHAB 5.2.1, echtes Google-Konto, Backup ~50–300 MB
 
 ### 7.5a Hinweise Docker
 - Das Binding selbst verhält sich gleich – es nutzt nur `${OPENHAB_USERDATA}` (im Container `/openhab/userdata`) und ausgehendes HTTPS.

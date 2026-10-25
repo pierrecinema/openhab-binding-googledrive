@@ -68,7 +68,7 @@ import org.slf4j.LoggerFactory;
  * changed for {@code stableSeconds}, because the backup script writes the archive step by step. Uploads run one at a
  * time from a queue; failed uploads are retried a few times.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public class GoogleDriveBackupHandler extends BaseThingHandler {

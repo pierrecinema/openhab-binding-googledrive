@@ -31,7 +31,7 @@ import org.eclipse.jdt.annotation.Nullable;
 /**
  * Helpers for local backup files and the target folder path.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public final class BackupFiles {

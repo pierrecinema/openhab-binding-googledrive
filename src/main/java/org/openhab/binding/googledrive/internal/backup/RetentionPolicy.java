@@ -21,7 +21,7 @@ import org.openhab.binding.googledrive.internal.api.dto.DriveFile;
 /**
  * The {@link RetentionPolicy} decides which backups in Google Drive are removed.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 public final class RetentionPolicy {

@@ -25,7 +25,7 @@ import com.google.gson.Gson;
 /**
  * Tests for {@link DriveApi}.
  *
- * @author Pierre - Initial contribution
+ * @author Pierrecinema - Initial contribution
  */
 @NonNullByDefault
 class DriveApiTest {
