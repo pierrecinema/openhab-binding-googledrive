@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+    Built against the openHAB 5.0 add-on reactor so the bundle runs on every 5.x release (5.0 and later).
+    Inside openhab-addons the parent resolves from the repository; standalone it is fetched from the openHAB repository.
+  -->
+  <parent>
+    <groupId>org.openhab.addons.bundles</groupId>
+    <artifactId>org.openhab.addons.reactor.bundles</artifactId>
+    <version>5.0.3</version>
+    <relativePath/>
+  </parent>
+
+  <artifactId>org.openhab.binding.googledrive</artifactId>
+  <version>5.0.3-SNAPSHOT</version>
+
+  <name>openHAB Add-ons :: Bundles :: Google Drive Binding</name>
+
+  <!--
+    Standalone build: the add-on reactor root is not available, so the static code analysis rules are taken from the
+    local tools/ folder (copied from openhab-addons). Inside openhab-addons this section is removed.
+  -->
+  <properties>
+    <basedirRoot>${project.basedir}</basedirRoot>
+    <!--
+      Same as the add-on reactor defaults, but imports org.openhab.core.* with the range [5.0,6) instead of
+      version=!, so the standalone (marketplace) JAR refuses to resolve on openHAB below 5.0 or on a future 6.x.
+    -->
+    <oh.bndDefaults><![CDATA[Bundle-SymbolicName: ${project.artifactId}
+Automatic-Module-Name: ${def;bsn}
+Import-Package: \\
+  io.swagger.v3.oas.annotations.*;resolution:=optional,\\
+  javax.annotation.security.*;resolution:=optional,\\
+  org.eclipse.jdt.annotation.*;resolution:=optional,\\
+  org.openhab.core.automation.annotation.*;resolution:=optional;version=!,\\
+  org.openhab.core.*;version="[5.0,6)",\\
+  org.openhab.*;version=!,\\
+  com.google.common.*;version="14.0",\\
+  ${bnd.importpackage},\\
+  *
+-exportcontents: \\
+  !*.internal.*,\\
+  !*.impl.*, \\
+  org.openhab.*, \\
+  ${bnd.exportpackage}
+-noimportjava: true
+-sources: false
+-contract: *
+-includeresource: ${bnd.includeresource}
+-fixupmessages: \\
+  'Unused Import-Package instructions';is:=ignore,\\
+  'Unused Export-Package instructions';is:=ignore,\\
+  ${bnd.fixupmessages}]]></oh.bndDefaults>
+  </properties>
+
+  <repositories>
+    <repository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>openhab-release</id>
+      <url>https://openhab.jfrog.io/openhab/libs-release</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>openhab-release</id>
+      <url>https://openhab.jfrog.io/openhab/libs-release</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.commonjava.maven.plugins</groupId>
+        <artifactId>directory-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>directories</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

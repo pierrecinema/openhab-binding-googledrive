@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="googledrive"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<!-- Google account (OAuth2 device code login) -->
+	<bridge-type id="account">
+		<label>Google Drive Account</label>
+		<description>Connection to a Google Drive account. Login is done with a device code on google.com/device.</description>
+		<semantic-equipment-tag>WebService</semantic-equipment-tag>
+
+		<channels>
+			<channel id="quotaUsed" typeId="quotaUsed"/>
+			<channel id="quotaTotal" typeId="quotaTotal"/>
+			<channel id="loginCode" typeId="loginCode"/>
+		</channels>
+
+		<config-description>
+			<parameter name="clientId" type="text" required="true">
+				<label>Client ID</label>
+				<description>OAuth client ID of type "TVs and Limited Input devices" from the Google Cloud Console.</description>
+			</parameter>
+			<parameter name="clientSecret" type="text" required="true">
+				<context>password</context>
+				<label>Client Secret</label>
+				<description>OAuth client secret belonging to the client ID.</description>
+			</parameter>
+			<parameter name="quotaRefresh" type="integer" min="0" unit="min">
+				<label>Quota Refresh Interval</label>
+				<description>Interval in minutes for reading the storage quota. 0 disables it.</description>
+				<default>60</default>
+				<advanced>true</advanced>
+			</parameter>
+		</config-description>
+	</bridge-type>
+
+	<!-- Backup upload -->
+	<thing-type id="backup">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="account"/>
+		</supported-bridge-type-refs>
+
+		<label>Backup Upload</label>
+		<description>Watches the local backup folder and uploads new backups to a Google Drive folder.</description>
+		<semantic-equipment-tag>WebService</semantic-equipment-tag>
+
+		<channels>
+			<channel id="upload" typeId="upload"/>
+			<channel id="status" typeId="status"/>
+			<channel id="progress" typeId="progress"/>
+			<channel id="lastUpload" typeId="lastUpload"/>
+			<channel id="lastFile" typeId="lastFile"/>
+			<channel id="lastSize" typeId="lastSize"/>
+			<channel id="remoteCount" typeId="remoteCount"/>
+			<channel id="lastError" typeId="lastError"/>
+			<channel id="event" typeId="event"/>
+		</channels>
+
+		<config-description>
+			<parameter name="sourceFolder" type="text">
+				<label>Source Folder</label>
+				<description>Local folder containing the backups. Empty means the default openHAB backup folder
+					(userdata/backup).</description>
+			</parameter>
+			<parameter name="filePattern" type="text">
+				<label>File Pattern</label>
+				<description>Glob pattern of the backup files to upload.</description>
+				<default>*.zip</default>
+			</parameter>
+			<parameter name="targetFolder" type="text">
+				<label>Target Folder</label>
+				<description>Name of the folder in Google Drive. It is created if it does not exist.</description>
+				<default>openHAB Backups</default>
+			</parameter>
+			<parameter name="retentionCount" type="integer" min="0">
+				<label>Backups to Keep</label>
+				<description>Number of backups kept in Google Drive. Older ones are removed. 0 keeps all.</description>
+				<default>10</default>
+			</parameter>
+			<parameter name="retentionMode" type="text">
+				<label>Removal Mode</label>
+				<description>How old backups are removed from Google Drive.</description>
+				<options>
+					<option value="TRASH">Move to trash</option>
+					<option value="DELETE">Delete permanently</option>
+				</options>
+				<limitToOptions>true</limitToOptions>
+				<default>TRASH</default>
+			</parameter>
+			<parameter name="autoUpload" type="boolean">
+				<label>Automatic Upload</label>
+				<description>Upload new backups automatically. If disabled, uploads only happen on command.</description>
+				<default>true</default>
+			</parameter>
+			<parameter name="stableSeconds" type="integer" min="1" unit="s">
+				<label>Stable Time</label>
+				<description>Seconds a file size must stay unchanged before the file is considered complete.</description>
+				<default>30</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="uploadExistingOnStart" type="boolean">
+				<label>Upload Existing on Start</label>
+				<description>On start, upload local backups that are not yet in Google Drive.</description>
+				<default>false</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="deleteLocalAfterUpload" type="boolean">
+				<label>Delete Local After Upload</label>
+				<description>Delete the local file after the upload has been verified.</description>
+				<default>false</default>
+				<advanced>true</advanced>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+	<!-- Account channels -->
+	<channel-type id="quotaUsed">
+		<item-type unitHint="GB">Number:DataAmount</item-type>
+		<label>Storage Used</label>
+		<description>Storage used in the Google account</description>
+		<tags>
+			<tag>Measurement</tag>
+		</tags>
+		<state readOnly="true" pattern="%.2f %unit%"/>
+	</channel-type>
+
+	<channel-type id="quotaTotal">
+		<item-type unitHint="GB">Number:DataAmount</item-type>
+		<label>Storage Total</label>
+		<description>Total storage of the Google account (empty if unlimited)</description>
+		<state readOnly="true" pattern="%.2f %unit%"/>
+	</channel-type>
+
+	<channel-type id="loginCode" advanced="true">
+		<item-type>String</item-type>
+		<label>Login Code</label>
+		<description>Code to enter on google.com/device. Empty when logged in.</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<!-- Backup channels -->
+	<channel-type id="upload">
+		<item-type>Switch</item-type>
+		<label>Upload Now</label>
+		<description>ON uploads the newest local backup now</description>
+	</channel-type>
+
+	<channel-type id="status">
+		<item-type>String</item-type>
+		<label>Status</label>
+		<description>Current upload status</description>
+		<tags>
+			<tag>Status</tag>
+		</tags>
+		<state readOnly="true">
+			<options>
+				<option value="IDLE">Idle</option>
+				<option value="WAITING">Waiting for file</option>
+				<option value="UPLOADING">Uploading</option>
+				<option value="OK">OK</option>
+				<option value="ERROR">Error</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="progress">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Progress</label>
+		<description>Progress of the running upload</description>
+		<state readOnly="true" min="0" max="100" pattern="%d %%"/>
+	</channel-type>
+
+	<channel-type id="lastUpload">
+		<item-type>DateTime</item-type>
+		<label>Last Upload</label>
+		<description>Time of the last successful upload</description>
+		<tags>
+			<tag>Status</tag>
+			<tag>Timestamp</tag>
+		</tags>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="lastFile">
+		<item-type>String</item-type>
+		<label>Last File</label>
+		<description>Name of the last uploaded file</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="lastSize">
+		<item-type unitHint="MB">Number:DataAmount</item-type>
+		<label>Last Size</label>
+		<description>Size of the last uploaded file</description>
+		<state readOnly="true" pattern="%.1f %unit%"/>
+	</channel-type>
+
+	<channel-type id="remoteCount">
+		<item-type>Number</item-type>
+		<label>Backups in Drive</label>
+		<description>Number of backups in the Google Drive folder</description>
+		<state readOnly="true" pattern="%d"/>
+	</channel-type>
+
+	<channel-type id="lastError" advanced="true">
+		<item-type>String</item-type>
+		<label>Last Error</label>
+		<description>Last error message, empty after a successful upload</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="event">
+		<kind>trigger</kind>
+		<label>Upload Event</label>
+		<description>Triggered when an upload starts, succeeds or fails</description>
+		<event>
+			<options>
+				<option value="UPLOAD_STARTED">Upload started</option>
+				<option value="UPLOAD_SUCCESS">Upload succeeded</option>
+				<option value="UPLOAD_FAILED">Upload failed</option>
+			</options>
+		</event>
+	</channel-type>
+
+</thing:thing-descriptions>

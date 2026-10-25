@@ -1,0 +1,10 @@
+target/
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+.claude/settings.local.json
+src/main/history/

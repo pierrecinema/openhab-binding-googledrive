@@ -1,0 +1,29 @@
+/*
+ * Copyright (c) 2010-2026 Contributors to the openHAB project
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ */
+package org.openhab.binding.googledrive.internal.config;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
+/**
+ * The {@link GoogleDriveAccountConfiguration} class contains fields mapping the account bridge configuration
+ * parameters.
+ *
+ * @author Pierre - Initial contribution
+ */
+@NonNullByDefault
+public class GoogleDriveAccountConfiguration {
+
+    public String clientId = "";
+    public String clientSecret = "";
+    public int quotaRefresh = 60;
+}
