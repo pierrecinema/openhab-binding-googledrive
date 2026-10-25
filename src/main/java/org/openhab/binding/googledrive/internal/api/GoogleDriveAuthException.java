@@ -33,4 +33,9 @@ public class GoogleDriveAuthException extends GoogleDriveException {
     public GoogleDriveAuthException(String message, @Nullable Throwable cause) {
         super(message, cause);
     }
+
+    @Override
+    public boolean isRetryable() {
+        return false;
+    }
 }

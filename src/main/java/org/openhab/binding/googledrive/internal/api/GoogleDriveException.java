@@ -27,22 +27,28 @@ public class GoogleDriveException extends Exception {
     private static final long serialVersionUID = 1L;
 
     private final int httpStatus;
+    private final @Nullable String reason;
 
     public GoogleDriveException(String message) {
-        this(message, 0, null);
+        this(message, 0, null, null);
     }
 
     public GoogleDriveException(String message, int httpStatus) {
-        this(message, httpStatus, null);
+        this(message, httpStatus, null, null);
     }
 
     public GoogleDriveException(String message, @Nullable Throwable cause) {
-        this(message, 0, cause);
+        this(message, 0, null, cause);
     }
 
     public GoogleDriveException(String message, int httpStatus, @Nullable Throwable cause) {
+        this(message, httpStatus, null, cause);
+    }
+
+    public GoogleDriveException(String message, int httpStatus, @Nullable String reason, @Nullable Throwable cause) {
         super(message, cause);
         this.httpStatus = httpStatus;
+        this.reason = reason;
     }
 
     /**
@@ -50,5 +56,22 @@ public class GoogleDriveException extends Exception {
      */
     public int getHttpStatus() {
         return httpStatus;
+    }
+
+    /**
+     * Returns the Drive API error reason (for example "storageQuotaExceeded"), or null if unknown.
+     */
+    public @Nullable String getReason() {
+        return reason;
+    }
+
+    /**
+     * Returns true if the same request may succeed when it is retried later (network problems, rate limits and
+     * server errors).
+     */
+    public boolean isRetryable() {
+        String reason = this.reason;
+        return httpStatus == 0 || httpStatus == 429 || httpStatus >= 500
+                || (httpStatus == 403 && reason != null && reason.toLowerCase().contains("ratelimit"));
     }
 }

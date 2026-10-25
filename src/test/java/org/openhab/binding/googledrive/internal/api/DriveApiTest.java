@@ -14,8 +14,11 @@ package org.openhab.binding.googledrive.internal.api;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.Instant;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.Test;
+import org.openhab.binding.googledrive.internal.api.dto.DriveFile;
 
 import com.google.gson.Gson;
 
@@ -65,5 +68,54 @@ class DriveApiTest {
     @Test
     void errorMessageWithoutBody() {
         assertEquals("HTTP 502", DriveApi.errorMessage(gson, 502, "<html>Bad Gateway</html>"));
+    }
+
+    @Test
+    void parseRangeOfResumableUpload() {
+        assertEquals(0, DriveApi.parseRange(null));
+        assertEquals(8388608, DriveApi.parseRange("bytes=0-8388607"));
+        assertEquals(1, DriveApi.parseRange("bytes=0-0"));
+        assertEquals(0, DriveApi.parseRange("garbage"));
+    }
+
+    @Test
+    void chunkSizeIsMultipleOf256KiB() {
+        assertEquals(0, DriveApi.CHUNK_SIZE % (256 * 1024));
+    }
+
+    @Test
+    void escapeQueryQuotes() {
+        assertEquals("Pierre\\'s \\\\ Backups", DriveApi.escapeQuery("Pierre's \\ Backups"));
+    }
+
+    @Test
+    void exceptionReasonAndRetry() {
+        String quota = """
+                {"error":{"code":403,"message":"quota","errors":[{"reason":"storageQuotaExceeded"}]}}
+                """;
+        GoogleDriveException full = DriveApi.toException(gson, 403, quota);
+        assertEquals("storageQuotaExceeded", full.getReason());
+        assertFalse(full.isRetryable());
+
+        String rate = """
+                {"error":{"code":403,"message":"slow","errors":[{"reason":"userRateLimitExceeded"}]}}
+                """;
+        assertTrue(DriveApi.toException(gson, 403, rate).isRetryable());
+        assertTrue(DriveApi.toException(gson, 503, "").isRetryable());
+        assertTrue(DriveApi.toException(gson, 429, "").isRetryable());
+        assertFalse(DriveApi.toException(gson, 404, "").isRetryable());
+        assertFalse(new GoogleDriveAuthException("login lost").isRetryable());
+    }
+
+    @Test
+    void driveFileParsing() {
+        DriveFile file = gson.fromJson("""
+                {"id":"1","name":"b.zip","size":"12345","md5Checksum":"abc","createdTime":"2026-10-26T03:00:00.123Z"}
+                """, DriveFile.class);
+        assertNotNull(file);
+        assertEquals(12345, file.getSize());
+        assertEquals(Instant.parse("2026-10-26T03:00:00.123Z"), file.getCreatedTime());
+        assertEquals(0, new DriveFile().getSize());
+        assertEquals(Instant.EPOCH, new DriveFile().getCreatedTime());
     }
 }

@@ -28,4 +28,9 @@ public class GoogleDriveConfigurationException extends GoogleDriveException {
     public GoogleDriveConfigurationException(String message, int httpStatus) {
         super(message, httpStatus);
     }
+
+    @Override
+    public boolean isRetryable() {
+        return false;
+    }
 }

@@ -1,0 +1,122 @@
+/*
+ * Copyright (c) 2010-2026 Contributors to the openHAB project
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ */
+package org.openhab.binding.googledrive.internal.backup;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
+import java.util.List;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.openhab.binding.googledrive.internal.api.dto.DriveFile;
+
+/**
+ * Tests for {@link FilePattern}, {@link RetentionPolicy} and {@link BackupFiles}.
+ *
+ * @author Pierre - Initial contribution
+ */
+@NonNullByDefault
+class BackupLogicTest {
+
+    @TempDir
+    @NonNullByDefault({})
+    Path tempDir;
+
+    @Test
+    void filePatternMatchesGlob() {
+        FilePattern zip = new FilePattern("*.zip");
+        assertTrue(zip.matches("openhab-backup-26_10_26-03_00_00.zip"));
+        assertTrue(zip.matches("BACKUP.ZIP"));
+        assertFalse(zip.matches("backup.zip.part"));
+        assertFalse(zip.matches("notes.txt"));
+
+        FilePattern prefixed = new FilePattern("openhab-backup-??_*.zip");
+        assertTrue(prefixed.matches("openhab-backup-26_10_26.zip"));
+        assertFalse(prefixed.matches("other-26_10_26.zip"));
+
+        // Regex characters in the pattern are literals
+        assertTrue(new FilePattern("backup(1).zip").matches("backup(1).zip"));
+        assertFalse(new FilePattern("a.zip").matches("abzip"));
+
+        assertTrue(new FilePattern("").matches("anything"));
+    }
+
+    @Test
+    void retentionKeepsNewestBackups() {
+        List<DriveFile> files = List.of(file("b3.zip", "2026-10-03T03:00:00Z"), file("b1.zip", "2026-10-01T03:00:00Z"),
+                file("notes.txt", "2026-09-01T03:00:00Z"), file("b4.zip", "2026-10-04T03:00:00Z"),
+                file("b2.zip", "2026-10-02T03:00:00Z"));
+        FilePattern zip = new FilePattern("*.zip");
+
+        List<DriveFile> remove = RetentionPolicy.filesToRemove(files, 2, zip);
+        assertEquals(List.of("b1.zip", "b2.zip"), remove.stream().map(f -> f.name).toList());
+
+        assertTrue(RetentionPolicy.filesToRemove(files, 0, zip).isEmpty(), "0 keeps all");
+        assertTrue(RetentionPolicy.filesToRemove(files, 4, zip).isEmpty());
+        assertTrue(RetentionPolicy.filesToRemove(files, 10, zip).isEmpty());
+        assertEquals(4, RetentionPolicy.backups(files, zip).size(), "other files are not counted");
+    }
+
+    @Test
+    void retentionIgnoresTrashedFiles() {
+        DriveFile trashed = file("old.zip", "2026-01-01T00:00:00Z");
+        trashed.trashed = true;
+        List<DriveFile> files = List.of(trashed, file("new.zip", "2026-10-01T00:00:00Z"));
+        assertTrue(RetentionPolicy.filesToRemove(files, 1, new FilePattern("*.zip")).isEmpty());
+    }
+
+    @Test
+    void folderPathSplitsSegments() {
+        assertEquals(List.of("openHAB Backups"), BackupFiles.folderPath(null));
+        assertEquals(List.of("openHAB Backups"), BackupFiles.folderPath("  "));
+        assertEquals(List.of("openHAB Backups"), BackupFiles.folderPath("/"));
+        assertEquals(List.of("Backups"), BackupFiles.folderPath("Backups"));
+        assertEquals(List.of("openHAB", "Backups"), BackupFiles.folderPath("/openHAB/ Backups /"));
+    }
+
+    @Test
+    void listReturnsMatchingFilesOldestFirst() throws IOException {
+        Path older = Files.writeString(tempDir.resolve("b-older.zip"), "1");
+        Path newer = Files.writeString(tempDir.resolve("a-newer.zip"), "2");
+        Files.writeString(tempDir.resolve("ignore.txt"), "3");
+        Files.createDirectory(tempDir.resolve("dir.zip"));
+        Files.setLastModifiedTime(older, FileTime.from(Instant.parse("2026-10-01T00:00:00Z")));
+        Files.setLastModifiedTime(newer, FileTime.from(Instant.parse("2026-10-02T00:00:00Z")));
+
+        FilePattern zip = new FilePattern("*.zip");
+        assertEquals(List.of(older, newer), BackupFiles.list(tempDir, zip));
+        assertEquals(newer, BackupFiles.newest(tempDir, zip));
+        assertNull(BackupFiles.newest(tempDir, new FilePattern("*.tar")));
+    }
+
+    @Test
+    void md5MatchesDriveFormat() throws IOException {
+        Path file = Files.write(tempDir.resolve("x.zip"), "hello".getBytes(StandardCharsets.UTF_8));
+        assertEquals("5d41402abc4b2a76b9719d911017c592", BackupFiles.md5(file));
+    }
+
+    private static DriveFile file(String name, String created) {
+        DriveFile file = new DriveFile();
+        file.id = "id-" + name;
+        file.name = name;
+        file.createdTime = created;
+        return file;
+    }
+}
