@@ -1,0 +1,46 @@
+# Builds the binding and publishes the JAR as a GitHub release when a version tag (v1.2.3) is pushed.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Check that the pom version matches the tag
+        run: |
+          VERSION=$(mvn -B -q -ntp help:evaluate -Dexpression=project.version -DforceStdout)
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "pom.xml version $VERSION does not match tag $GITHUB_REF_NAME"
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Build with tests and static code analysis
+        run: mvn -B -ntp clean install
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          JAR="target/org.openhab.binding.googledrive-$VERSION.jar"
+          PRERELEASE=""
+          case "$VERSION" in 0.*) PRERELEASE="--prerelease" ;; esac
+          NOTES="docs/releases/$VERSION.md"
+          if [ -f "$NOTES" ]; then NOTES_ARG=(--notes-file "$NOTES"); else NOTES_ARG=(--generate-notes); fi
+          gh release create "$GITHUB_REF_NAME" "$JAR" \
+            --title "Google Drive Binding $VERSION" $PRERELEASE "${NOTES_ARG[@]}"
