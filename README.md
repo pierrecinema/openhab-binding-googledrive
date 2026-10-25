@@ -7,7 +7,38 @@ The binding watches that folder and uploads every new backup file to a folder in
 
 The binding requires openHAB 5.0 or later.
 
-> **Status:** under development. The login (M2) and the upload (M3) are not implemented yet.
+> **Status:** under development. The login works, the upload (M3) is not implemented yet.
+
+## Google Cloud Setup
+
+The binding needs your own OAuth client from Google. This is a one-time setup of about 15 minutes.
+
+1. Open the [Google Cloud Console](https://console.cloud.google.com/) and create a new project (for example "openHAB").
+1. Go to **APIs & Services → Library**, search for **Google Drive API** and enable it.
+1. Go to **APIs & Services → OAuth consent screen** (Google Auth Platform):
+   - User type **External**, enter an app name and your e-mail address.
+   - Add the scope `.../auth/drive.file`.
+   - Set the publishing status to **In production**.
+     In "Testing" status Google invalidates the login after 7 days.
+     A verification by Google is not needed for personal use, the login page just shows a warning.
+1. Go to **APIs & Services → Credentials → Create credentials → OAuth client ID**:
+   - Application type: **TVs and Limited Input devices**.
+   - Copy the **Client ID** and the **Client secret**.
+
+The binding only uses the scope `drive.file`: it can only see and change files it created itself, nothing else in your Drive.
+
+## Login
+
+1. Add the `account` bridge and enter the client ID and the client secret.
+1. The bridge goes to `OFFLINE (CONFIGURATION_PENDING)` and its status shows a message like
+   *"Open https://www.google.com/device and enter the code ABCD-EFGH"*.
+   The code is also written to the openHAB log and to the `loginCode` channel.
+1. Open the address on any device, sign in with your Google account, enter the code and allow access.
+1. Within a few seconds the bridge goes `ONLINE`.
+
+The login is stored by openHAB and refreshed automatically.
+If the code expires before you use it, a new one is shown.
+To log in with another account, run the `logout` action of the bridge (or delete and re-add the bridge).
 
 ## Supported Things
 

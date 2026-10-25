@@ -89,7 +89,7 @@ Ablauf:
    *„Öffne https://www.google.com/device und gib den Code **ABCD-EFGH** ein (gültig 30 Min.)“*
    Der Code steht zusätzlich im Log (INFO) und im Channel `loginCode`.
 4. Bridge fragt im von Google vorgegebenen Intervall `https://oauth2.googleapis.com/token` ab, bis der Nutzer zugestimmt hat.
-5. Tokens werden über den openHAB-`OAuthClientService` gespeichert (der Core unterstützt den Gerätecode-Login nach RFC 8628 bereits über `getDeviceCodeResponse()` – geprüft im openhab-core-Quellcode) und automatisch erneuert → Bridge `ONLINE`.
+5. Tokens werden über den openHAB-`OAuthClientService` gespeichert und automatisch erneuert. Den Gerätecode-Ablauf selbst (Schritte 2–4) setzt das Binding in `DeviceCodeLogin` um: Die Core-Variante (`getDeviceCodeResponse()`) schickt beim Token-Abruf kein `client_secret` mit, Google verlangt es aber. Die fertigen Tokens werden per `importAccessTokenResponse()` an den Core übergeben. und automatisch erneuert → Bridge `ONLINE`.
 6. Läuft der Code ab, wird automatisch ein neuer angefordert.
 
 **Warum Scope `drive.file`:** Das Binding sieht nur Dateien, die es selbst angelegt hat. Das reicht für Backups, ist das sicherste Recht und das einzige brauchbare Drive-Recht, das Google für den Gerätecode-Login erlaubt.
@@ -295,4 +295,4 @@ end
 | 3 | Lokale Backups nach Upload löschen | **entschieden:** Option kommt, Standard aus |
 | 4 | Bilderrahmen | **entschieden:** v1.2 |
 | 5 | Code-Owner / GitHub-Konto | **offen** – GitHub-Konto wird noch angelegt (nötig erst für M6) |
-| 6 | Gerätecode-Login im openHAB Core | **geklärt:** vom Core unterstützt, kein Mehraufwand |
+| 6 | Gerätecode-Login im openHAB Core | **geklärt (M2):** Core sendet kein `client_secret` beim Token-Abruf → Login-Ablauf im Binding, Speicherung/Erneuerung weiter über den Core |
