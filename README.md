@@ -42,37 +42,116 @@ The binding requires **openHAB 5.0 or later**. It does not start on openHAB 4.x.
 ## Google Cloud Setup
 
 The binding needs your own OAuth client from Google. This is a one-time setup of about 15 minutes.
+At the end you have a **Client ID** and a **Client secret**, which you enter in openHAB.
 
-🇩🇪 Eine ausführliche Schritt-für-Schritt-Anleitung auf Deutsch gibt es hier: [docs/ANLEITUNG-GOOGLE.md](docs/ANLEITUNG-GOOGLE.md).
+🇩🇪 Die gleiche Anleitung auf Deutsch: [docs/ANLEITUNG-GOOGLE.md](docs/ANLEITUNG-GOOGLE.md).
 
-1. Open the [Google Cloud Console](https://console.cloud.google.com/) and create a new project (for example "openHAB").
-1. Go to **APIs & Services → Library**, search for **Google Drive API** and enable it.
-1. Go to **APIs & Services → OAuth consent screen**, which opens the **Google Auth Platform**, and click **Get started**:
-   - App name (for example `openHAB`) and your e-mail as support e-mail.
-   - Audience **External**.
-   - Your e-mail as contact information, agree to the policy and create.
-1. **Data Access → Add or remove scopes**: select `.../auth/drive.file` and save.
-1. **Audience → Publish app**, so the publishing status becomes **In production**.
-   In "Testing" status Google invalidates the login after 7 days.
-   If the button is disabled, complete the **Branding** page first (support e-mail and developer contact e-mail; if still required, add a home page, privacy policy and terms link plus an authorized domain).
-   Do not upload a logo, it would require a verification by Google.
-   For personal use no verification is needed; the login page only shows a warning.
-1. **Clients → Create client**:
-   - Application type **TVs and Limited Input devices**. Other types do not work with the device code login.
-   - Copy the **Client ID** and the **Client secret** right away. Google shows the secret only once.
+> Google renames menu entries from time to time. If an entry is called slightly differently, look for the closest match.
 
-## Login
+| Part | Content | Time |
+|---|---|---|
+| 1 | Create a project | 2 min |
+| 2 | Enable the Google Drive API | 1 min |
+| 3 | Set up the consent screen | 3 min |
+| 4 | Complete the branding | 3 min |
+| 5 | Publish the app | 1 min |
+| 6 | Create the client ID | 2 min |
+| 7 | Connect the account in openHAB | 2 min |
 
-1. Add the `account` bridge and enter the client ID and the client secret.
-1. The bridge goes to `OFFLINE (CONFIGURATION_PENDING)` and its status shows a message like
+### Part 1: Create a Project
+
+1. Open **https://console.cloud.google.com/**.
+1. Sign in with your Google account. The first time you have to accept the terms of service.
+1. Click the **project picker** at the top left next to the Google Cloud logo (it says "Select a project" or shows an existing project name).
+1. Click **New Project**.
+1. Enter `openHAB` as project name and leave the location at "No organization".
+1. Click **Create**.
+1. Select the new project **openHAB** in the project picker. All following steps must be done in this project.
+
+### Part 2: Enable the Google Drive API
+
+1. Open the menu **☰** at the top left and go to **APIs & Services → Library**.
+1. Search for **`Google Drive API`** and click the result.
+1. Click **Enable**.
+
+### Part 3: Set up the Consent Screen
+
+1. Open **☰ → APIs & Services → OAuth consent screen**. This opens the **Google Auth Platform**.
+1. Click **Get started** and complete the steps:
+   - **App information:** app name `openHAB`, your e-mail address as user support e-mail.
+   - **Audience:** **External**.
+   - **Contact information:** your e-mail address.
+   - **Finish:** agree to the policy, then click **Create**.
+1. Click **Data Access** on the left, then **Add or remove scopes**.
+1. Type `drive.file` into the filter and tick **`.../auth/drive.file`** ("See, edit, create, and delete only the specific Google Drive files you use with this app").
+1. Click **Update** and then **Save** at the bottom.
+
+### Part 4: Complete the Branding
+
+Google only allows publishing the app (part 5) when the branding page is complete, so fill it in completely now.
+
+1. Click **Branding** on the left.
+1. Check or enter:
+
+   | Field | Value |
+   |---|---|
+   | App name | `openHAB` |
+   | User support email | your e-mail from the list |
+   | App logo | **leave empty** (a logo requires a verification of the app by Google) |
+   | Application home page | `https://github.com/pierrecinema/openhab-binding-googledrive` |
+   | Application privacy policy link | `https://github.com/pierrecinema/openhab-binding-googledrive` |
+   | Application terms of service link | `https://github.com/pierrecinema/openhab-binding-googledrive` |
+   | Authorized domains → "Add domain" | `github.com` |
+   | Developer contact information (at the bottom) | your e-mail address |
+
+   > The links only have to be filled in; Google does not check them for an app for personal use.
+   > The **developer contact information** at the very bottom is the field that is overlooked most often.
+
+1. Click **Save** at the bottom.
+
+### Part 5: Publish the App ⚠️ important
+
+1. Click **Audience** on the left.
+1. The publishing status shows **Testing**. Click **Publish app** and confirm.
+1. The status must now show **In production**.
+
+> If you skip this part, Google invalidates the login after 7 days and the binding asks for a new login.
+> A verification by Google is not needed for personal use. If a note like "Verification required" appears, you can ignore it.
+
+**"Publish app" is disabled?** Then the page says _"… you need to complete the configuration on the Branding page"_.
+Go back to part 4 and check every field of the table, especially the **developer contact information** and the **authorized domain** `github.com`. Don't forget to save.
+
+### Part 6: Create the Client ID
+
+1. Click **Clients** on the left, then **Create client**.
+1. Select the application type **TVs and Limited Input devices**.
+   > Only this type works with the device code login. "Web application" or "Desktop app" do not work.
+1. Enter `openHAB Google Drive Binding` as name and click **Create**.
+1. The **Client ID** (ends with `.apps.googleusercontent.com`) and the **Client secret** (usually starts with `GOCSPX-`) are shown.
+   > ⚠️ **Copy both right away**, for example into a password manager, or download the JSON file.
+   > Google shows the client secret only once. If you lost it, simply create a new client.
+   > Do not share the client ID and secret and do not show them on screenshots.
+
+The work in the Google Cloud Console is done.
+
+The binding only uses the scope `drive.file`: it can only see and change files it created itself, nothing else in your Drive.
+
+### Part 7: Connect the Account in openHAB
+
+1. In openHAB go to **Settings → Things → + → Google Drive Binding**.
+1. Select **Google Drive Account** (labelled *Bridge*).
+1. Enter the **Client ID** and **Client secret** from part 6 (without leading or trailing spaces) and click **Create**.
+1. Open the new thing. Its status is `OFFLINE (CONFIGURATION_PENDING)` with a message like
    _"Open https://www.google.com/device and enter the code ABCD-EFGH"_.
    The code is also written to the openHAB log and to the `loginCode` channel.
-1. Open the address on any device, sign in with the Google account whose Drive should receive the backups, and enter the code.
+1. Open **https://www.google.com/device** on your phone or PC and enter the code (not case-sensitive).
+1. Select the Google account whose Drive should receive the backups.
 1. If Google shows _"Google hasn't verified this app"_, choose **Advanced → Go to openHAB (unsafe)**. It is your own app.
-1. Allow access. Within a few seconds the bridge goes `ONLINE` and the quota channels show values.
+1. Click **Allow**. Within a few seconds the bridge goes `ONLINE` and the storage channels show values.
+1. Now add the **Backup Upload** thing (also via **+ → Google Drive Binding**) and select the account as bridge.
 
+The code is valid for 30 minutes; if it expires, a new one is shown automatically.
 The login is stored by openHAB (encrypted) and refreshed automatically; it survives restarts and updates.
-If the code expires before you use it, a new one is shown.
 To log in with another account, run the `logout` action of the bridge, or delete and re-add the bridge.
 
 ## Supported Things
@@ -259,6 +338,7 @@ config:
 
 | Problem | Cause and solution |
 |---|---|
+| "Publish app" is disabled in the Google Cloud Console | The branding page is incomplete. Check every field of part 4, especially the developer contact information and the authorized domain `github.com`. |
 | Bridge: _"Google rejected the OAuth client"_ | Wrong client ID or secret, or wrong client type. Create a client of type **TVs and Limited Input devices**. |
 | Bridge: _"Access was denied"_ | "Cancel" was chosen on the Google page. Disable and enable the bridge to get a new code. |
 | Bridge asks for a new login every 7 days | The Google Cloud project is still in "Testing". Publish it (**Audience → Publish app**) and log in once more. |
