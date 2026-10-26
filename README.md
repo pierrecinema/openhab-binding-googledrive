@@ -220,6 +220,37 @@ then
 end
 ```
 
+## Dashboard Widget
+
+A ready-made card for Main UI shows status, last upload, file, size, backups in Drive, storage quota, a progress bar during uploads and an "Upload now" button.
+The last upload turns orange when it is older than a configurable number of days. Texts are available in English and German.
+
+![Dashboard widget](docs/images/widget-backup-card.png)
+
+Installation:
+
+1. Open **Developer Tools → Widgets → +** in Main UI.
+1. Replace the content with [widgets/googledrive_backup_card.yaml](widgets/googledrive_backup_card.yaml) and save.
+1. On a page, add the widget **googledrive_backup_card** (under "Personal widgets") and select your items in its properties.
+   `errorItem`, `quotaUsedItem` and `quotaTotalItem` are optional.
+
+Example configuration on a page:
+
+```yaml
+component: widget:googledrive_backup_card
+config:
+  lang: de
+  statusItem: BackupUpload_Status
+  lastUploadItem: BackupUpload_Letzter_Upload
+  lastFileItem: BackupUpload_Letzte_Datei
+  lastSizeItem: BackupUpload_Letzte_Grosse
+  countItem: BackupUpload_Backups_in_Drive
+  progressItem: BackupUpload_Fortschritt
+  uploadItem: BackupUpload_Jetzt_hochladen
+  quotaUsedItem: GoogleDriveKonto_Speicher_belegt
+  quotaTotalItem: GoogleDriveKonto_Speicher_gesamt
+```
+
 ## Troubleshooting
 
 | Problem | Cause and solution |

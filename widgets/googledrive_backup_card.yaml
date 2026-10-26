@@ -1,0 +1,309 @@
+uid: googledrive_backup_card
+tags:
+  - googledrive
+  - backup
+props:
+  parameterGroups:
+    - name: backup
+      label: Backup thing items
+    - name: account
+      label: Account items (optional)
+    - name: display
+      label: Display
+  parameters:
+    - name: title
+      label: Title
+      type: TEXT
+      default: Google Drive Backup
+      groupName: display
+    - name: lang
+      label: Language
+      type: TEXT
+      default: en
+      limitToOptions: true
+      options:
+        - value: en
+          label: English
+        - value: de
+          label: Deutsch
+      groupName: display
+    - name: maxAgeDays
+      label: Warn after days
+      description: The last upload is shown in orange when it is older than this number of days
+      type: INTEGER
+      default: 8
+      groupName: display
+    - name: statusItem
+      label: Status item
+      type: TEXT
+      context: item
+      required: true
+      groupName: backup
+    - name: lastUploadItem
+      label: Last upload item
+      type: TEXT
+      context: item
+      required: true
+      groupName: backup
+    - name: lastFileItem
+      label: Last file item
+      type: TEXT
+      context: item
+      required: true
+      groupName: backup
+    - name: lastSizeItem
+      label: Last size item
+      type: TEXT
+      context: item
+      required: true
+      groupName: backup
+    - name: countItem
+      label: Backups in Drive item
+      type: TEXT
+      context: item
+      required: true
+      groupName: backup
+    - name: progressItem
+      label: Progress item
+      type: TEXT
+      context: item
+      required: true
+      groupName: backup
+    - name: uploadItem
+      label: Upload now item
+      type: TEXT
+      context: item
+      required: true
+      groupName: backup
+    - name: errorItem
+      label: Last error item
+      description: Optional, shown when the status is ERROR
+      type: TEXT
+      context: item
+      groupName: backup
+    - name: quotaUsedItem
+      label: Storage used item
+      type: TEXT
+      context: item
+      groupName: account
+    - name: quotaTotalItem
+      label: Storage total item
+      type: TEXT
+      context: item
+      groupName: account
+component: f7-card
+config:
+  style:
+    border-radius: 12px
+    padding: 4px 4px 8px
+slots:
+  default:
+    - component: f7-card-header
+      slots:
+        default:
+          - component: f7-row
+            config:
+              style:
+                width: 100%
+                align-items: center
+                flex-wrap: nowrap
+            slots:
+              default:
+                - component: f7-row
+                  config:
+                    style:
+                      align-items: center
+                      flex-wrap: nowrap
+                      gap: 10px
+                  slots:
+                    default:
+                      - component: f7-icon
+                        config:
+                          f7: cloud_upload_fill
+                          size: 26
+                          color: blue
+                      - component: Label
+                        config:
+                          text: =props.title || 'Google Drive Backup'
+                          style:
+                            font-size: 18px
+                            font-weight: 600
+                - component: Label
+                  config:
+                    text: "=items[props.statusItem].displayState || items[props.statusItem].state"
+                    style:
+                      color: white
+                      font-size: 12px
+                      font-weight: 600
+                      padding: 3px 10px
+                      border-radius: 12px
+                      white-space: nowrap
+                      background: "=({OK: 'var(--f7-color-green)', UPLOADING: 'var(--f7-color-blue)', WAITING: 'var(--f7-color-orange)', ERROR: 'var(--f7-color-red)'})[items[props.statusItem].state] || 'var(--f7-color-gray)'"
+    - component: f7-card-content
+      config:
+        style:
+          padding-top: 0
+      slots:
+        default:
+          - component: f7-row
+            config:
+              style:
+                padding: 6px 0
+                flex-wrap: nowrap
+                gap: 12px
+            slots:
+              default:
+                - component: Label
+                  config:
+                    text: "=props.lang === 'de' ? 'Letzter Upload' : 'Last upload'"
+                    style:
+                      opacity: 0.65
+                      white-space: nowrap
+                - component: Label
+                  config:
+                    text: "=['NULL', 'UNDEF'].includes(items[props.lastUploadItem].state) ? '–' : dayjs(items[props.lastUploadItem].state).format('DD.MM.YYYY HH:mm') + ' (' + (dayjs(items[props.lastUploadItem].state).isAfter(dayjs()) ? dayjs() : dayjs(items[props.lastUploadItem].state)).fromNow() + ')'"
+                    style:
+                      text-align: right
+                      font-weight: 500
+                      color: "=(!['NULL', 'UNDEF'].includes(items[props.lastUploadItem].state) && dayjs().diff(dayjs(items[props.lastUploadItem].state), 'day') >= (props.maxAgeDays || 8)) ? 'var(--f7-color-orange)' : 'inherit'"
+          - component: f7-row
+            config:
+              style:
+                padding: 6px 0
+                flex-wrap: nowrap
+                gap: 12px
+            slots:
+              default:
+                - component: Label
+                  config:
+                    text: "=props.lang === 'de' ? 'Datei' : 'File'"
+                    style:
+                      opacity: 0.65
+                      white-space: nowrap
+                - component: Label
+                  config:
+                    text: "=['NULL', 'UNDEF'].includes(items[props.lastFileItem].state) ? '–' : items[props.lastFileItem].state"
+                    style:
+                      text-align: right
+                      font-weight: 500
+                      overflow: hidden
+                      text-overflow: ellipsis
+                      white-space: nowrap
+          - component: f7-row
+            config:
+              style:
+                padding: 6px 0
+                flex-wrap: nowrap
+                gap: 12px
+            slots:
+              default:
+                - component: Label
+                  config:
+                    text: "=props.lang === 'de' ? 'Größe' : 'Size'"
+                    style:
+                      opacity: 0.65
+                - component: Label
+                  config:
+                    text: "=['NULL', 'UNDEF'].includes(items[props.lastSizeItem].state) ? '–' : (items[props.lastSizeItem].displayState || items[props.lastSizeItem].state)"
+                    style:
+                      font-weight: 500
+          - component: f7-row
+            config:
+              style:
+                padding: 6px 0
+                flex-wrap: nowrap
+                gap: 12px
+            slots:
+              default:
+                - component: Label
+                  config:
+                    text: Backups in Drive
+                    style:
+                      opacity: 0.65
+                - component: Label
+                  config:
+                    text: "=['NULL', 'UNDEF'].includes(items[props.countItem].state) ? '–' : items[props.countItem].state"
+                    style:
+                      font-weight: 500
+          - component: f7-block
+            config:
+              visible: "=items[props.statusItem].state === 'UPLOADING'"
+              style:
+                margin: 10px 0 4px
+                padding: 0
+            slots:
+              default:
+                - component: Label
+                  config:
+                    text: "=(props.lang === 'de' ? 'Lädt hoch … ' : 'Uploading … ') + Math.round(Number.parseFloat(items[props.progressItem].state) || 0) + ' %'"
+                    style:
+                      font-size: 12px
+                      color: var(--f7-color-blue)
+                      margin-bottom: 4px
+                - component: f7-progressbar
+                  config:
+                    progress: "=Number.parseFloat(items[props.progressItem].state) || 0"
+                    color: blue
+          - component: Label
+            config:
+              visible: "=items[props.statusItem].state === 'ERROR' && !!props.errorItem"
+              text: "=props.errorItem ? items[props.errorItem].state : ''"
+              style:
+                margin-top: 8px
+                padding: 8px 10px
+                border-radius: 8px
+                font-size: 13px
+                color: var(--f7-color-red)
+                background: rgba(255, 59, 48, 0.12)
+          - component: f7-block
+            config:
+              visible: "=!!props.quotaUsedItem && !!props.quotaTotalItem"
+              style:
+                margin: 12px 0 0
+                padding: 0
+            slots:
+              default:
+                - component: f7-row
+                  config:
+                    style:
+                      flex-wrap: nowrap
+                      gap: 12px
+                      margin-bottom: 6px
+                  slots:
+                    default:
+                      - component: Label
+                        config:
+                          text: "=props.lang === 'de' ? 'Speicher' : 'Storage'"
+                          style:
+                            opacity: 0.65
+                      - component: Label
+                        config:
+                          text: "=props.quotaUsedItem && props.quotaTotalItem ? (items[props.quotaUsedItem].displayState || items[props.quotaUsedItem].state) + ' / ' + (items[props.quotaTotalItem].displayState || items[props.quotaTotalItem].state) : ''"
+                          style:
+                            font-weight: 500
+                - component: f7-progressbar
+                  config:
+                    progress: "=props.quotaUsedItem && props.quotaTotalItem ? Math.min(100, (Number.parseFloat(items[props.quotaUsedItem].state) || 0) / (Number.parseFloat(items[props.quotaTotalItem].state) || 1) * 100) : 0"
+                    color: "=(props.quotaUsedItem && props.quotaTotalItem && (Number.parseFloat(items[props.quotaUsedItem].state) / Number.parseFloat(items[props.quotaTotalItem].state)) > 0.9) ? 'red' : ((props.quotaUsedItem && props.quotaTotalItem && (Number.parseFloat(items[props.quotaUsedItem].state) / Number.parseFloat(items[props.quotaTotalItem].state)) > 0.75) ? 'orange' : 'green')"
+    - component: f7-card-footer
+      config:
+        style:
+          justify-content: center
+          border-top: none
+      slots:
+        default:
+          - component: oh-button
+            config:
+              text: "=props.lang === 'de' ? 'Jetzt hochladen' : 'Upload now'"
+              iconF7: arrow_up_circle_fill
+              fill: true
+              round: true
+              color: blue
+              disabled: "=items[props.statusItem].state === 'UPLOADING'"
+              actionType: command
+              actionItem: =props.uploadItem
+              actionCommand: "ON"
+              actionConfirmation: "=props.lang === 'de' ? 'Neuestes Backup jetzt zu Google Drive hochladen?' : 'Upload the newest backup to Google Drive now?'"
+              actionFeedback: "=props.lang === 'de' ? 'Upload gestartet' : 'Upload started'"
+              style:
+                width: 100%
