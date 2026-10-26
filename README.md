@@ -105,6 +105,7 @@ Discovery is not supported. Add the `account` bridge and the `backup` thing manu
 | `targetFolder`           | text    | Folder in Google Drive, created if missing; `a/b` creates nested folders | `openHAB Backups` | no  | no       |
 | `retentionCount`         | integer | Number of backups kept in Google Drive, 0 keeps all                | 10                | no       | no       |
 | `retentionMode`          | text    | `TRASH` (move to trash) or `DELETE` (delete permanently)           | `TRASH`           | no       | no       |
+| `localRetentionCount`    | integer | Number of backups kept on the server (source folder), 0 keeps all | 0                 | no       | no       |
 | `autoUpload`             | boolean | Upload new backups automatically                                   | true              | no       | no       |
 | `stableSeconds`          | integer | Seconds the file size must stay unchanged before upload            | 30                | no       | yes      |
 | `uploadExistingOnStart`  | boolean | On start, upload local backups that are not yet in Google Drive    | false             | no       | yes      |
@@ -122,6 +123,9 @@ Discovery is not supported. Add the `account` bridge and the `backup` thing manu
 - After the upload the MD5 checksum in Google Drive is compared with the local file.
   A file with the same name and checksum that is already in Google Drive is not uploaded again.
 - With `deleteLocalAfterUpload` the local file is deleted only after the checksum matched.
+- With `localRetentionCount` only the newest _N_ backups stay on the server; older local backups are deleted after each upload and at start.
+  For safety a local backup is only deleted if it is in Google Drive or older than the newest backup in Google Drive.
+  A backup that could not be uploaded yet (for example while the internet is down) is never deleted.
 - After each upload, backups beyond `retentionCount` are moved to the trash (or deleted, see `retentionMode`).
   Only files matching `filePattern` are counted and removed; other files in the folder are never touched.
   Files in the Google Drive trash are deleted by Google after 30 days.

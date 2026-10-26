@@ -17,7 +17,7 @@
 
   <artifactId>org.openhab.binding.googledrive</artifactId>
   <!-- Own release version for the marketplace JAR; inside openhab-addons the reactor version is used instead. -->
-  <version>0.2.0</version>
+  <version>0.3.0</version>
 
   <name>openHAB Add-ons :: Bundles :: Google Drive Binding</name>
 

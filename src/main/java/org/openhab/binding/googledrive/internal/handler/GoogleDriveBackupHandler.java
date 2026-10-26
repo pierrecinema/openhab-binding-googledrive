@@ -296,6 +296,7 @@ public class GoogleDriveBackupHandler extends BaseThingHandler {
                         }
                     }
                 }
+                cleanupLocal(remote);
             } catch (GoogleDriveException e) {
                 logger.warn("Cannot read the Google Drive backup folder: {}", e.getMessage());
                 updateState(CHANNEL_LAST_ERROR, new StringType(e.getMessage()));
@@ -515,6 +516,8 @@ public class GoogleDriveBackupHandler extends BaseThingHandler {
     private void cleanup(DriveApi api, String folder) {
         try {
             List<DriveFile> remote = api.listFiles(folder);
+            // Local cleanup first, while all uploaded backups are still listed in Drive.
+            cleanupLocal(remote);
             List<DriveFile> remove = RetentionPolicy.filesToRemove(remote, config.retentionCount, pattern);
             boolean trash = !GoogleDriveBackupConfiguration.RETENTION_DELETE.equals(config.retentionMode);
             int removed = 0;
@@ -535,6 +538,31 @@ public class GoogleDriveBackupHandler extends BaseThingHandler {
                     new DecimalType(RetentionPolicy.backups(remote, pattern).size() - removed));
         } catch (GoogleDriveException e) {
             logger.warn("Cleanup of old backups in Google Drive failed: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Deletes old local backups beyond {@code localRetentionCount}. Only backups that are in Google Drive, or older
+     * than the newest backup in Google Drive, are deleted; newer backups that are not uploaded yet are always kept.
+     */
+    private void cleanupLocal(List<DriveFile> remote) {
+        if (config.localRetentionCount <= 0) {
+            return;
+        }
+        try {
+            List<Path> local = BackupFiles.list(sourceFolder, pattern);
+            List<Path> remove = BackupFiles.localFilesToRemove(local, config.localRetentionCount,
+                    file -> isInDrive(file, remote));
+            for (Path file : remove) {
+                Files.deleteIfExists(file);
+                synchronized (lock) {
+                    known.remove(file);
+                    failures.remove(file);
+                }
+                logger.info("Old local backup {} deleted (keeping {} on the server)", file, config.localRetentionCount);
+            }
+        } catch (IOException e) {
+            logger.warn("Cleanup of old local backups in {} failed: {}", sourceFolder, e.getMessage());
         }
     }
 

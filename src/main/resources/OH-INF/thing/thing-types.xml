@@ -88,6 +88,12 @@
 				<limitToOptions>true</limitToOptions>
 				<default>TRASH</default>
 			</parameter>
+			<parameter name="localRetentionCount" type="integer" min="0">
+				<label>Backups to Keep on Server</label>
+				<description>Number of backups kept in the local source folder. Older ones are deleted, but only if they are in
+					Google Drive or older than the newest backup in Google Drive. 0 keeps all.</description>
+				<default>0</default>
+			</parameter>
 			<parameter name="autoUpload" type="boolean">
 				<label>Automatic Upload</label>
 				<description>Upload new backups automatically. If disabled, uploads only happen on command.</description>

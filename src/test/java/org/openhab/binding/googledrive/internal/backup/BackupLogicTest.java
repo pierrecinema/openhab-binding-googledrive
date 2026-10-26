@@ -107,6 +107,37 @@ class BackupLogicTest {
     }
 
     @Test
+    void localRetentionKeepsNewestAndProtectsUnuploaded() {
+        Path b1 = Path.of("b1.zip");
+        Path b2 = Path.of("b2.zip");
+        Path b3 = Path.of("b3.zip");
+        Path b4 = Path.of("b4.zip");
+        Path b5 = Path.of("b5.zip");
+        List<Path> local = List.of(b1, b2, b3, b4, b5);
+
+        // All uploaded: keep the newest 2
+        assertEquals(List.of(b1, b2, b3), BackupFiles.localFilesToRemove(local, 2, p -> true));
+
+        // Newest two not uploaded yet (e.g. no internet): they stay, the older ones are safe in Drive
+        assertEquals(List.of(b1, b2, b3),
+                BackupFiles.localFilesToRemove(local, 2, p -> !p.equals(b4) && !p.equals(b5)));
+        // b1 and b2 are older than b3, which is in Drive, so they may go as well
+        assertEquals(List.of(b1, b2, b3), BackupFiles.localFilesToRemove(local, 2, p -> p.equals(b3)));
+        // Keep 1, but b4 and b5 are not uploaded: b5 is kept by the count, b4 is protected
+        assertEquals(List.of(b1, b2, b3), BackupFiles.localFilesToRemove(local, 1, p -> p.equals(b3)));
+
+        // Only an old one in Drive: newer ones are protected
+        assertEquals(List.of(b1), BackupFiles.localFilesToRemove(local, 1, p -> p.equals(b1)));
+
+        // Nothing in Drive: nothing is deleted
+        assertTrue(BackupFiles.localFilesToRemove(local, 1, p -> false).isEmpty());
+
+        // 0 keeps all, fewer files than the limit
+        assertTrue(BackupFiles.localFilesToRemove(local, 0, p -> true).isEmpty());
+        assertTrue(BackupFiles.localFilesToRemove(local, 5, p -> true).isEmpty());
+    }
+
+    @Test
     void md5MatchesDriveFormat() throws IOException {
         Path file = Files.write(tempDir.resolve("x.zip"), "hello".getBytes(StandardCharsets.UTF_8));
         assertEquals("5d41402abc4b2a76b9719d911017c592", BackupFiles.md5(file));

@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -59,6 +60,31 @@ public final class BackupFiles {
     public static @Nullable Path newest(Path folder, FilePattern pattern) throws IOException {
         List<Path> files = list(folder, pattern);
         return files.isEmpty() ? null : files.get(files.size() - 1);
+    }
+
+    /**
+     * Returns the local backups to delete so that {@code keep} backups stay on the server.
+     * <p>
+     * Only backups that are in Google Drive, or older than the newest backup in Google Drive, are returned. A backup
+     * that is newer than everything in Google Drive (for example because the upload failed) is never deleted.
+     *
+     * @param local local backups, oldest first
+     * @param keep number of local backups to keep, 0 keeps all
+     * @param inDrive tells whether a local backup is in Google Drive
+     */
+    public static List<Path> localFilesToRemove(List<Path> local, int keep, Predicate<Path> inDrive) {
+        if (keep <= 0 || local.size() <= keep) {
+            return List.of();
+        }
+        int newestInDrive = -1;
+        for (int i = local.size() - 1; i >= 0; i--) {
+            if (inDrive.test(local.get(i))) {
+                newestInDrive = i;
+                break;
+            }
+        }
+        int limit = Math.min(local.size() - keep, newestInDrive + 1);
+        return limit > 0 ? List.copyOf(local.subList(0, limit)) : List.of();
     }
 
     /**

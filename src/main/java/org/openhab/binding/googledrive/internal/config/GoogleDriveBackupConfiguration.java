@@ -36,4 +36,6 @@ public class GoogleDriveBackupConfiguration {
     public int stableSeconds = 30;
     public boolean uploadExistingOnStart = false;
     public boolean deleteLocalAfterUpload = false;
+    /** Number of backups kept on the server, 0 keeps all. */
+    public int localRetentionCount = 0;
 }
