@@ -14,8 +14,10 @@ Everything is configured in the openHAB UI: no shell scripts, no rclone, no sudo
 
 The binding requires **openHAB 5.0 or later**. It does not start on openHAB 4.x.
 
-| Backup thing configuration | Backup thing channels |
+| Account bridge (logged in) | Account channels (storage quota) |
 |---|---|
+| ![Account bridge](docs/images/account-bridge.png) | ![Account channels](docs/images/account-bridge-channels.png) |
+| **Backup thing configuration** | **Backup thing channels** |
 | ![Backup thing configuration](docs/images/backup-thing-configuration.png) | ![Backup thing channels](docs/images/backup-thing-channels.png) |
 
 > **Beta:** Versions 0.x are beta versions. Login and backup upload work and are tested; a photo frame from shared Drive folders follows in 1.2.
