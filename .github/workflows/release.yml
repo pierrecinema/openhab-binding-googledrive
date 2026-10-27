@@ -23,7 +23,8 @@ jobs:
 
       - name: Check that the pom version matches the tag
         run: |
-          VERSION=$(mvn -B -q -ntp help:evaluate -Dexpression=project.version -DforceStdout)
+          # Read the own <version> (the one after <artifactId>), much faster than starting Maven
+          VERSION=$(sed -n '/<artifactId>org.openhab.binding/{n;n;p}' pom.xml | sed -n 's:.*<version>\(.*\)</version>.*:\1:p' | head -1)
           if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
             echo "pom.xml version $VERSION does not match tag $GITHUB_REF_NAME"
             exit 1
