@@ -39,8 +39,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           JAR="target/org.openhab.binding.googledrive-$VERSION.jar"
-          PRERELEASE=""
-          case "$VERSION" in 0.*) PRERELEASE="--prerelease" ;; esac
           NOTES="docs/releases/$VERSION.md"
           if [ -f "$NOTES" ]; then NOTES_ARG=(--notes-file "$NOTES"); else NOTES_ARG=(--generate-notes); fi
           # Files shown in the release: JAR, dashboard widget(s) and the guides
@@ -50,5 +48,5 @@ jobs:
             gh release upload "$GITHUB_REF_NAME" "${ASSETS[@]}" --clobber
           else
             gh release create "$GITHUB_REF_NAME" "${ASSETS[@]}" \
-              --title "Google Drive Binding $VERSION" $PRERELEASE "${NOTES_ARG[@]}"
+              --title "Google Drive Binding $VERSION" --latest "${NOTES_ARG[@]}"
           fi
