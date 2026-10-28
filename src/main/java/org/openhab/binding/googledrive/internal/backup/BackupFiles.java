@@ -20,11 +20,16 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import java.util.zip.CRC32;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -85,6 +90,43 @@ public final class BackupFiles {
         }
         int limit = Math.min(local.size() - keep, newestInDrive + 1);
         return limit > 0 ? List.copyOf(local.subList(0, limit)) : List.of();
+    }
+
+    /**
+     * Returns true if the file is a complete, readable archive.
+     * <p>
+     * A ZIP file is only complete when its central directory at the end has been written. Every entry is read once,
+     * which also checks its CRC. A writer that stalled half way produces a file without central directory, which is
+     * rejected even though its size did not change for a while. Files that are not ZIP files are not checked.
+     */
+    public static boolean isCompleteArchive(Path file) {
+        if (!fileName(file).toLowerCase(Locale.ROOT).endsWith(".zip")) {
+            return true;
+        }
+        byte[] buffer = new byte[64 * 1024];
+        int entries = 0;
+        try (ZipFile zip = new ZipFile(file.toFile())) {
+            for (ZipEntry entry : Collections.list(zip.entries())) {
+                entries++;
+                if (entry.isDirectory()) {
+                    continue;
+                }
+                // ZipFile does not verify the CRC of stored (uncompressed) entries, so it is checked here
+                CRC32 crc = new CRC32();
+                try (InputStream in = zip.getInputStream(entry)) {
+                    int read;
+                    while ((read = in.read(buffer)) >= 0) {
+                        crc.update(buffer, 0, read);
+                    }
+                }
+                if (entry.getCrc() != -1 && entry.getCrc() != crc.getValue()) {
+                    return false;
+                }
+            }
+        } catch (IOException e) {
+            return false;
+        }
+        return entries > 0;
     }
 
     /**

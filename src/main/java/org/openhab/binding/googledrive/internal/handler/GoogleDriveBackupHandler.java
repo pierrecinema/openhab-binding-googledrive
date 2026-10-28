@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
@@ -89,6 +90,8 @@ public class GoogleDriveBackupHandler extends BaseThingHandler {
     private static final int SCAN_SECONDS = 10;
     private static final int RETRY_MINUTES = 5;
     private static final int MAX_ATTEMPTS = 3;
+    /** Warn when a stable file is still not a complete archive after this time. */
+    private static final int INCOMPLETE_WARNING_SECONDS = 600;
 
     private final Logger logger = LoggerFactory.getLogger(GoogleDriveBackupHandler.class);
 
@@ -115,7 +118,14 @@ public class GoogleDriveBackupHandler extends BaseThingHandler {
     private @Nullable String folderId;
     private boolean folderVerified;
 
-    private record Candidate(long size, long modified, Instant since) {
+    /**
+     * A new file that is not uploaded yet.
+     *
+     * @param since when size or modification time last changed
+     * @param firstSeen when the file was first seen
+     * @param warned whether a warning about an incomplete archive was logged
+     */
+    private record Candidate(long size, long modified, Instant since, Instant firstSeen, boolean warned) {
     }
 
     private record Failure(int attempts, Instant retryAt) {
@@ -325,7 +335,7 @@ public class GoogleDriveBackupHandler extends BaseThingHandler {
         }
 
         Instant now = Instant.now();
-        boolean waiting;
+        List<Path> stable = new ArrayList<>();
         synchronized (lock) {
             candidates.keySet().retainAll(files);
             for (Path file : files) {
@@ -341,9 +351,26 @@ public class GoogleDriveBackupHandler extends BaseThingHandler {
                     continue;
                 }
                 Candidate candidate = candidates.get(file);
-                if (candidate == null || candidate.size() != size || candidate.modified() != modified) {
-                    candidates.put(file, new Candidate(size, modified, now));
+                if (candidate == null) {
+                    candidates.put(file, new Candidate(size, modified, now, now, false));
+                } else if (candidate.size() != size || candidate.modified() != modified) {
+                    candidates.put(file, new Candidate(size, modified, now, candidate.firstSeen(), candidate.warned()));
                 } else if (!candidate.since().plusSeconds(config.stableSeconds).isAfter(now)) {
+                    stable.add(file);
+                }
+            }
+        }
+
+        // An unchanged size can also mean that the backup script stalled: check that the archive is complete.
+        // This reads the whole file once, so it runs outside the lock.
+        for (Path file : stable) {
+            boolean complete = BackupFiles.isCompleteArchive(file);
+            synchronized (lock) {
+                Candidate candidate = candidates.get(file);
+                if (candidate == null) {
+                    continue;
+                }
+                if (complete) {
                     candidates.remove(file);
                     known.add(file);
                     if (config.autoUpload) {
@@ -352,8 +379,26 @@ public class GoogleDriveBackupHandler extends BaseThingHandler {
                     } else {
                         logger.debug("New backup {} found, automatic upload is disabled", file);
                     }
+                } else {
+                    boolean warn = !candidate.warned()
+                            && !candidate.firstSeen().plusSeconds(INCOMPLETE_WARNING_SECONDS).isAfter(now);
+                    candidates.put(file, new Candidate(candidate.size(), candidate.modified(), now,
+                            candidate.firstSeen(), candidate.warned() || warn));
+                    if (warn) {
+                        logger.warn(
+                                "Backup {} is still not a complete archive after {} minutes; is the backup "
+                                        + "script stuck? It is uploaded as soon as it is complete.",
+                                file, INCOMPLETE_WARNING_SECONDS / 60);
+                        updateState(CHANNEL_LAST_ERROR, new StringType("Incomplete archive: " + file.getFileName()));
+                    } else {
+                        logger.debug("Backup {} is not a complete archive yet, waiting", file);
+                    }
                 }
             }
+        }
+
+        boolean waiting;
+        synchronized (lock) {
             failures.forEach((file, failure) -> {
                 if (!failure.retryAt().isAfter(now) && !queue.contains(file)) {
                     queue.add(file);
@@ -431,6 +476,11 @@ public class GoogleDriveBackupHandler extends BaseThingHandler {
 
         try {
             long size = Files.size(file);
+            // Also for manual uploads: never upload (and then clean up around) an incomplete archive
+            if (!BackupFiles.isCompleteArchive(file)) {
+                fail(file, "Incomplete or damaged archive, not uploaded: " + name, true);
+                return;
+            }
             String md5 = BackupFiles.md5(file);
             String folder = ensureFolder(api);
 

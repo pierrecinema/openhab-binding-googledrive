@@ -138,6 +138,65 @@ class BackupLogicTest {
     }
 
     @Test
+    void completeArchiveIsAccepted() throws IOException {
+        Path zip = zip(tempDir.resolve("complete.zip"), 3);
+        assertTrue(BackupFiles.isCompleteArchive(zip));
+    }
+
+    @Test
+    void stalledWriterIsDetected() throws IOException {
+        // A writer that stopped half way: the central directory at the end is missing
+        Path complete = zip(tempDir.resolve("full.zip"), 3);
+        byte[] bytes = Files.readAllBytes(complete);
+        Path half = Files.write(tempDir.resolve("half.zip"), java.util.Arrays.copyOf(bytes, bytes.length / 2));
+        assertFalse(BackupFiles.isCompleteArchive(half));
+
+        // Only the last few bytes missing
+        Path almost = Files.write(tempDir.resolve("almost.zip"), java.util.Arrays.copyOf(bytes, bytes.length - 10));
+        assertFalse(BackupFiles.isCompleteArchive(almost));
+    }
+
+    @Test
+    void damagedOrEmptyArchiveIsRejected() throws IOException {
+        Path complete = zip(tempDir.resolve("data.zip"), 1);
+        byte[] bytes = Files.readAllBytes(complete);
+        // Flip bytes inside the first (stored) entry: the CRC check fails
+        bytes[60] ^= 0x5A;
+        bytes[61] ^= 0x5A;
+        Path damaged = Files.write(tempDir.resolve("damaged.zip"), bytes);
+        assertFalse(BackupFiles.isCompleteArchive(damaged));
+
+        Path empty = tempDir.resolve("empty.zip");
+        try (java.util.zip.ZipOutputStream out = new java.util.zip.ZipOutputStream(Files.newOutputStream(empty))) {
+            out.finish();
+        }
+        assertFalse(BackupFiles.isCompleteArchive(empty), "an archive without files is not a backup");
+
+        assertFalse(BackupFiles.isCompleteArchive(Files.writeString(tempDir.resolve("text.zip"), "no zip")));
+        assertTrue(BackupFiles.isCompleteArchive(Files.writeString(tempDir.resolve("backup.tar"), "x")),
+                "other formats are not checked");
+    }
+
+    private static Path zip(Path file, int entries) throws IOException {
+        try (java.util.zip.ZipOutputStream out = new java.util.zip.ZipOutputStream(Files.newOutputStream(file))) {
+            for (int i = 0; i < entries; i++) {
+                byte[] data = ("entry " + i + " ").repeat(2000).getBytes(StandardCharsets.UTF_8);
+                java.util.zip.ZipEntry entry = new java.util.zip.ZipEntry("conf/file" + i + ".txt");
+                // stored (not compressed), so damaged bytes are caught by the CRC and not by the inflater
+                entry.setMethod(java.util.zip.ZipEntry.STORED);
+                entry.setSize(data.length);
+                java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+                crc.update(data);
+                entry.setCrc(crc.getValue());
+                out.putNextEntry(entry);
+                out.write(data);
+                out.closeEntry();
+            }
+        }
+        return file;
+    }
+
+    @Test
     void md5MatchesDriveFormat() throws IOException {
         Path file = Files.write(tempDir.resolve("x.zip"), "hello".getBytes(StandardCharsets.UTF_8));
         assertEquals("5d41402abc4b2a76b9719d911017c592", BackupFiles.md5(file));

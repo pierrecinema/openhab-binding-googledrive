@@ -193,7 +193,12 @@ Discovery is not supported. Add the `account` bridge and the `backup` thing manu
 ### How the Backup Upload Works
 
 - The source folder is checked every 10 seconds.
-  A new file is uploaded when its size has not changed for `stableSeconds`, so half-written archives are never uploaded.
+  A new file is considered when its size has not changed for `stableSeconds`.
+- **Completed-archive check:** an unchanged size can also mean that the backup script stalled.
+  Before every upload (also manual ones) a ZIP file is opened and every entry is read and checked against its CRC.
+  A half-written archive has no central directory yet and is not uploaded; the binding keeps waiting and logs a warning if it is still incomplete after 10 minutes.
+  As incomplete archives are never uploaded, they also never count for the cleanup in Google Drive.
+- Tip for your own backup scripts: write to a temporary name outside `filePattern` (e.g. `backup.zip.part`) and rename it when done.
 - Backups that already exist when the thing starts are **not** uploaded, unless `uploadExistingOnStart` is enabled.
   The `upload` channel (or the `uploadLatest` action) uploads the newest existing backup on demand.
 - Uploads run one at a time.
