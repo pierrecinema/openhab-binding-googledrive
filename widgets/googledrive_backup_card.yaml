@@ -300,7 +300,7 @@ slots:
               round: true
               color: blue
               disabled: "=items[props.statusItem].state === 'UPLOADING'"
-              actionType: command
+              action: command
               actionItem: =props.uploadItem
               actionCommand: "ON"
               actionConfirmation: "=props.lang === 'de' ? 'Neuestes Backup jetzt zu Google Drive hochladen?' : 'Upload the newest backup to Google Drive now?'"
