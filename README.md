@@ -20,6 +20,9 @@ The binding requires **openHAB 5.0 or later**. It does not start on openHAB 4.x.
 | **Backup thing configuration** | **Backup thing channels** |
 | ![Backup thing configuration](docs/images/backup-thing-configuration.png) | ![Backup thing channels](docs/images/backup-thing-channels.png) |
 
+<img width="1184" height="274" alt="image" src="https://github.com/user-attachments/assets/c2a02352-0b77-4a55-8634-32e17623928b" />
+
+
 > **Beta:** Versions 0.x are beta versions. Login and backup upload work and are tested; a photo frame from shared Drive folders follows in 1.2.
 > Please report problems and ideas as [GitHub issue](https://github.com/pierrecinema/openhab-binding-googledrive/issues) or in the [openHAB community thread](https://community.openhab.org/t/google-drive-binding-automatic-openhab-backups-to-google-drive/170779).
 
